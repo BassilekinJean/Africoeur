@@ -1,0 +1,299 @@
+# ================================================================
+# GitHub Actions - CI/CD Pipeline for VPS Deployment
+# Déploiement automatique vers VPS avec Docker
+# ================================================================
+
+name: CI/CD Deploy to VPS
+
+on:
+  push:
+    branches: [ "main" ]
+    paths-ignore:
+      - '**/*.md'
+      - '**/LICENSE'
+  workflow_dispatch:
+    inputs:
+      skip_tests:
+        description: 'Skip tests and deploy directly'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  REGISTRY: ghcr.io
+  # Hardcodé en minuscules pour éviter tout problème Docker
+  BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/backend
+  FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/frontend
+
+permissions:
+  contents: read
+  packages: read  # read suffit pour le pull sur le VPS (write uniquement pour le push dans build)
+
+jobs:
+  # ================================================================
+  # CI - Tests Backend (Python/Django)
+  # ================================================================
+  test-backend:
+    name: 🧪 Test Backend
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.skip_tests != 'true' }}
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: devuser
+          POSTGRES_PASSWORD: devpassword
+          POSTGRES_DB: devdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 📦 Install dependencies
+        working-directory: ./backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 🧪 Run Backend Tests
+        working-directory: ./backend
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings
+          DATABASE_URL: postgres://devuser:devpassword@localhost:5432/devdb
+          SECRET_KEY: test-secret-key-12345
+        run: python manage.py test
+
+  # ================================================================
+  # CI - Tests Frontend (Next.js)
+  # ================================================================
+  test-frontend:
+    name: 🧪 Test Frontend
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.skip_tests != 'true' }}
+
+    defaults:
+      run:
+        working-directory: ./frontend
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: './frontend/package-lock.json'
+
+      - name: 📦 Install dependencies
+        run: npm ci || npm install
+
+      - name: 🧪 Run Linter & Build Check
+        run: npm run build
+
+  # ================================================================
+  # Build - Docker Images
+  # ================================================================
+  build:
+    name: 🔨 Build & Push Docker Images
+    runs-on: ubuntu-latest
+    environment: variable
+    # FIX: on n'utilise plus always() — on vérifie explicitement chaque résultat possible
+    needs: [test-backend, test-frontend]
+    if: |
+      (needs.test-backend.result == 'success' || needs.test-backend.result == 'skipped') &&
+      (needs.test-frontend.result == 'success' || needs.test-frontend.result == 'skipped')
+
+    permissions:
+      contents: read
+      packages: write  # write uniquement dans ce job
+
+    outputs:
+      # FIX: on expose le tag SHA pour déployer la version exacte (pas latest)
+      image_tag: ${{ steps.get-tag.outputs.tag }}
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      # FIX: tag SHA court réutilisable dans deploy
+      - name: 🏷️ Get short SHA tag
+        id: get-tag
+        run: echo "tag=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+
+      - name: 🔐 Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🏷️ Extract metadata for Backend
+        id: meta-backend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.BACKEND_IMAGE }}
+          tags: |
+            type=sha,prefix=
+            type=raw,value=latest
+
+      - name: 🏷️ Extract metadata for Frontend
+        id: meta-frontend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.FRONTEND_IMAGE }}
+          tags: |
+            type=sha,prefix=
+            type=raw,value=latest
+
+      - name: 🔨 Build & Push Backend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: ${{ steps.meta-backend.outputs.tags }}
+          labels: ${{ steps.meta-backend.outputs.labels }}
+
+      - name: 🔨 Build & Push Frontend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+            NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+  # ================================================================
+  # CD - Deploy to VPS
+  # ================================================================
+  deploy:
+    name: 🚀 Deploy to VPS
+    runs-on: ubuntu-latest
+    needs: build
+    environment: variable
+    if: ${{ needs.build.result == 'success' }}
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📋 Copy Docker Compose to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_SSH_PORT }}
+          source: "docker-compose.yml"
+          target: ${{ secrets.VPS_DEPLOY_PATH }}
+
+      - name: 🚀 Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          # FIX: noms d'images déjà en minuscules via repository_owner, pas besoin de tr
+          BACKEND_IMAGE: ${{ env.BACKEND_IMAGE }}:${{ needs.build.outputs.image_tag }}
+          FRONTEND_IMAGE: ${{ env.FRONTEND_IMAGE }}:${{ needs.build.outputs.image_tag }}
+          # Variables front-end
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+          # Variables back-end (Django/Database/Celery)
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+          CELERY_BROKER_URL: ${{ secrets.CELERY_BROKER_URL }}
+          # FIX: PAT dédié read:packages au lieu du GITHUB_TOKEN (moins de droits, pas de fuite)
+          GHCR_PAT: ${{ secrets.GHCR_PULL_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_SSH_PORT }}
+          envs: BACKEND_IMAGE,FRONTEND_IMAGE,NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,NEXT_PUBLIC_API_URL,DATABASE_URL,DJANGO_SECRET_KEY,CELERY_BROKER_URL,GHCR_PAT,GITHUB_ACTOR
+          script: |
+            set -e
+            cd ${{ secrets.VPS_DEPLOY_PATH }}
+
+            # FIX: PAT read:packages uniquement — jamais le GITHUB_TOKEN complet
+            echo "$GHCR_PAT" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+
+            # Pull les images avec le tag SHA exact
+            docker pull "$BACKEND_IMAGE"
+            docker pull "$FRONTEND_IMAGE"
+
+            # FIX: snapshot de l'état courant pour rollback
+            PREV_BACKEND=$(docker inspect --format='{{index .RepoTags 0}}' $(docker compose -f docker-compose.yml images -q backend 2>/dev/null) 2>/dev/null || echo "")
+            PREV_FRONTEND=$(docker inspect --format='{{index .RepoTags 0}}' $(docker compose -f docker-compose.yml images -q frontend 2>/dev/null) 2>/dev/null || echo "")
+
+            # Stop et redémarrage avec les nouvelles images
+            docker compose -f docker-compose.yml down --remove-orphans || true
+            docker compose -f docker-compose.yml up -d
+
+            # FIX: health check — attendre que les containers soient healthy
+            echo "⏳ Waiting for containers to be healthy..."
+            TIMEOUT=60
+            ELAPSED=0
+            until [ "$(docker compose -f docker-compose.yml ps --status running --quiet | wc -l)" -ge 1 ] || [ $ELAPSED -ge $TIMEOUT ]; do
+              sleep 3
+              ELAPSED=$((ELAPSED+3))
+            done
+
+            # Vérifier qu'aucun container n'a crashé
+            RESTARTING=$(docker compose -f docker-compose.yml ps --status restarting --quiet | wc -l)
+            EXITED=$(docker compose -f docker-compose.yml ps --status exited --quiet | wc -l)
+
+            if [ "$RESTARTING" -gt 0 ] || [ "$EXITED" -gt 0 ]; then
+              echo "❌ Containers unhealthy after deploy — rolling back..."
+              docker compose -f docker-compose.yml down --remove-orphans || true
+
+              # FIX: rollback vers les images précédentes si disponibles
+              if [ -n "$PREV_BACKEND" ] && [ -n "$PREV_FRONTEND" ]; then
+                BACKEND_IMAGE="$PREV_BACKEND" FRONTEND_IMAGE="$PREV_FRONTEND" \
+                  docker compose -f docker-compose.yml up -d
+                echo "⚠️ Rolled back to previous images: $PREV_BACKEND / $PREV_FRONTEND"
+              fi
+
+              docker logout ghcr.io
+              rm -f ~/.docker/config.json
+              exit 1
+            fi
+
+            echo "✅ All containers are running"
+            docker compose -f docker-compose.yml ps
+
+            # FIX: prune uniquement les images du projet, pas tout le VPS
+            docker image prune -f --filter "label=org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}"
+
+            # Sécurité: suppression des credentials
+            docker logout ghcr.io
+            rm -f ~/.docker/config.json
+
+      - name: ✅ Deployment Summary
+        run: |
+          echo "## 🚀 Deployment Successful!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Image tag:** \`${{ needs.build.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Backend Image:** ${{ env.BACKEND_IMAGE }}:${{ needs.build.outputs.image_tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Frontend Image:** ${{ env.FRONTEND_IMAGE }}:${{ needs.build.outputs.image_tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployed to:** ${{ secrets.VPS_HOST }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
