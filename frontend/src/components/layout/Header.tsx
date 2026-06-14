@@ -20,7 +20,7 @@ export function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 border-b border-ink/8 bg-sand-50/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-[70] border-b border-ink/8 bg-sand-50/80 backdrop-blur-xl">
       <div className="container-page flex h-16 items-center justify-between gap-4">
         <Link href="/" className="transition-transform duration-200 active:scale-[0.98]">
           <Logo />
@@ -53,11 +53,16 @@ export function Header() {
         </div>
 
         <button
-          className="rounded-full p-2 text-ink md:hidden"
+          type="button"
+          className="rounded-full p-3 -mr-1 text-ink md:hidden"
           onClick={() => setOpen((v) => !v)}
           aria-label="Menu"
         >
-          {open ? <X size={22} /> : <Menu size={22} />}
+          {open ? (
+            <X size={22} className="pointer-events-none" />
+          ) : (
+            <Menu size={22} className="pointer-events-none" />
+          )}
         </button>
       </div>
 

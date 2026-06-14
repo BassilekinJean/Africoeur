@@ -57,7 +57,8 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} className={`${display.variable} ${sans.variable}`}>
-      <body className="grain min-h-screen">
+      <body className="min-h-screen">
+        <div className="grain" aria-hidden="true" />
         <NextIntlClientProvider messages={messages}>
           <Header />
           <main>{children}</main>

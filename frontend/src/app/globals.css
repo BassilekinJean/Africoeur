@@ -130,7 +130,7 @@
   }
 
   /* Grain photographique léger, posé en overlay non interactif. */
-  .grain::after {
+  .grain {
     content: "";
     position: fixed;
     inset: 0;
