@@ -2,6 +2,7 @@
 
 import { useLocale } from "next-intl";
 import { useTransition } from "react";
+import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +15,7 @@ export function LocaleSwitcher() {
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
   return (
@@ -23,7 +25,11 @@ export function LocaleSwitcher() {
           key={l.code}
           disabled={isPending}
           onClick={() =>
-            startTransition(() => router.replace(pathname, { locale: l.code }))
+            startTransition(() => {
+              const query = searchParams.toString();
+              const href = query ? `${pathname}?${query}` : pathname;
+              router.replace(href, { locale: l.code });
+            })
           }
           className={cn(
             "rounded-full px-3 py-1 text-xs font-semibold transition-colors duration-200 ease-out",
