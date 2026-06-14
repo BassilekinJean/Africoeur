@@ -1,0 +1,163 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg: #fbf7f0;
+    --grain-opacity: 0.05;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: theme("colors.ink.DEFAULT");
+    font-family: theme("fontFamily.sans");
+    /* Texture sable très subtile + halo solaire en haut. */
+    background-image:
+      radial-gradient(
+        1200px 600px at 80% -10%,
+        rgba(216, 144, 26, 0.1),
+        transparent 60%
+      ),
+      radial-gradient(
+        900px 500px at 0% 0%,
+        rgba(194, 86, 47, 0.07),
+        transparent 55%
+      );
+    background-attachment: fixed;
+  }
+
+  ::selection {
+    background: theme("colors.clay.400");
+    color: #fff;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: theme("fontFamily.display");
+    letter-spacing: -0.02em;
+    font-weight: 500;
+  }
+}
+
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
+  }
+
+  /* Bouton principal — terre cuite, réactif à la pression. */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-clay-500 px-6 py-3
+      text-sm font-semibold text-sand-50 shadow-soft transition-[transform,background-color]
+      duration-200 ease-out hover:bg-clay-600 active:scale-[0.97];
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full
+      bg-white/60 px-6 py-3 text-sm font-semibold text-ink backdrop-blur
+      transition-[transform,background-color] duration-200 ease-out
+      hover:bg-white active:scale-[0.97];
+    border: 1px solid theme("colors.ink.DEFAULT / 15%");
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium
+      text-ink-soft transition-colors duration-200 hover:text-ink;
+  }
+
+  .btn-ghost:hover {
+    background-color: theme("colors.ink.DEFAULT / 5%");
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full bg-white/70
+      px-3 py-1 text-xs font-medium text-ink-soft;
+    border: 1px solid theme("colors.ink.DEFAULT / 10%");
+  }
+
+  .card {
+    @apply rounded-xl2 bg-white/80 shadow-soft backdrop-blur-sm;
+    border: 1px solid theme("colors.ink.DEFAULT / 8%");
+  }
+
+  .field {
+    @apply w-full rounded-2xl bg-white/70 px-4 py-3 text-sm text-ink
+      outline-none transition-all duration-200 placeholder:text-ink-muted
+      focus:border-clay-400 focus:ring-4 focus:ring-clay-400/15;
+    border: 1px solid theme("colors.ink.DEFAULT / 12%");
+  }
+
+  .eyebrow {
+    @apply inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em]
+      text-clay-600;
+  }
+
+  /* Trame "kente" décorative en filigrane. */
+  .kente-rule {
+    height: 4px;
+    background: repeating-linear-gradient(
+      90deg,
+      theme("colors.clay.500") 0 14px,
+      theme("colors.ochre.500") 14px 22px,
+      theme("colors.forest.500") 22px 32px,
+      transparent 32px 40px
+    );
+    border-radius: 999px;
+  }
+
+  .progress-track {
+    @apply h-2.5 w-full overflow-hidden rounded-full;
+    background-color: theme("colors.ink.DEFAULT / 8%");
+  }
+
+  .progress-fill {
+    @apply h-full rounded-full bg-gradient-to-r from-ochre-500 via-clay-500 to-clay-600;
+    transition: width 900ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Grain photographique léger, posé en overlay non interactif. */
+  .grain::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+    opacity: var(--grain-opacity);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .stagger > * {
+    opacity: 0;
+    animation: fade-up 0.7s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  }
+  .stagger > *:nth-child(1) { animation-delay: 0.05s; }
+  .stagger > *:nth-child(2) { animation-delay: 0.12s; }
+  .stagger > *:nth-child(3) { animation-delay: 0.19s; }
+  .stagger > *:nth-child(4) { animation-delay: 0.26s; }
+  .stagger > *:nth-child(5) { animation-delay: 0.33s; }
+  .stagger > *:nth-child(6) { animation-delay: 0.4s; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

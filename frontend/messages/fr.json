@@ -1,0 +1,177 @@
+{
+  "meta": {
+    "title": "Africœur — Plateforme solidaire africaine",
+    "description": "Collecte d'aide humanitaire, médicale et sociale. Validation institutionnelle par les hôpitaux et ONG. Aucun accès famille, déblocage des fonds encadré."
+  },
+  "nav": {
+    "home": "Accueil",
+    "campaigns": "Appels à l'aide",
+    "ngo": "Espace ONG",
+    "how": "Comment ça marche",
+    "trust": "Notre modèle de confiance",
+    "login": "Espace partenaire",
+    "donate": "Faire un don",
+    "dashboard": "Mon espace"
+  },
+  "hero": {
+    "eyebrow": "Solidarité africaine · santé & social",
+    "title": "Chaque don change une vie, en toute confiance.",
+    "subtitle": "La première plateforme où chaque appel à l'aide est validé en amont par un service social hospitalier ou une ONG agréée. La famille ne touche jamais aux fonds : tout est débloqué sur justificatifs.",
+    "ctaPrimary": "Découvrir les appels",
+    "ctaSecondary": "Comment nous protégeons les dons",
+    "stat1": "validé par des assistants sociaux",
+    "stat2": "des fonds débloqués sur justificatifs",
+    "stat3": "d'accès direct de la famille aux fonds"
+  },
+  "trust": {
+    "eyebrow": "Notre différence",
+    "title": "Le « Uber » du social hospitalier",
+    "subtitle": "Là où les plateformes classiques laissent la porte ouverte à la fraude, nous validons l'identité et le besoin réel en amont.",
+    "items": {
+      "validation": {
+        "title": "Validation a priori",
+        "text": "Un assistant social ou une ONG agréée vérifie l'identité et le besoin réel avant toute publication."
+      },
+      "noFamily": {
+        "title": "Aucun accès famille",
+        "text": "La cagnotte est administrée à 100 % par l'institution. La famille ne touche jamais aux fonds."
+      },
+      "escrow": {
+        "title": "Compte séquestre",
+        "text": "Les fonds transitent par un compte dédié, débloqués via chèques conditionnés du partenaire bancaire."
+      },
+      "privacy": {
+        "title": "Données minimales",
+        "text": "Aucune donnée médicale confidentielle. Profil patient strictement limité, floutage automatique des mineurs."
+      }
+    }
+  },
+  "how": {
+    "eyebrow": "Comment ça marche",
+    "title": "Du besoin réel au déblocage encadré",
+    "steps": {
+      "s1": { "title": "Validation institutionnelle", "text": "L'hôpital ou l'ONG crée et certifie l'appel à l'aide." },
+      "s2": { "title": "Dons sécurisés", "text": "Mobile Money (Orange, MTN, Wave, Airtel) ou carte bancaire pour la diaspora." },
+      "s3": { "title": "Compte séquestre", "text": "Les fonds collectés sont conservés sur un compte dédié de la plateforme." },
+      "s4": { "title": "Déblocage sur justificatifs", "text": "Versement direct à l'hôpital ou au fournisseur, jamais à la famille." }
+    }
+  },
+  "campaigns": {
+    "title": "Appels à l'aide validés",
+    "subtitle": "Des cas médicaux et des projets ONG vérifiés en amont. Suivez la progression en temps réel.",
+    "filters": {
+      "all": "Tous",
+      "search": "Rechercher un appel…",
+      "category": "Catégorie",
+      "country": "Pays",
+      "status": "Statut",
+      "type": "Type",
+      "reset": "Réinitialiser"
+    },
+    "type": {
+      "medical": "Médical",
+      "ngo_project": "Projet ONG"
+    },
+    "category": {
+      "health": "Santé",
+      "emergency": "Urgence",
+      "education": "Éducation",
+      "development": "Développement",
+      "social": "Social"
+    },
+    "statusLabel": {
+      "active": "En cours",
+      "closed": "Clôturé",
+      "funded": "Objectif atteint"
+    },
+    "empty": "Aucun appel ne correspond à votre recherche.",
+    "raised": "collectés",
+    "goal": "objectif",
+    "donors": "donateurs",
+    "daysLeft": "jours restants",
+    "by": "Par",
+    "viewDetail": "Voir l'appel"
+  },
+  "detail": {
+    "back": "Tous les appels",
+    "presentation": "Présentation",
+    "video": "Vidéo de présentation",
+    "updates": "Mises à jour de terrain",
+    "fundUsage": "Utilisation des fonds",
+    "donors": "Donateurs",
+    "noDonors": "Soyez le premier à soutenir cet appel.",
+    "anonymous": "Donateur anonyme",
+    "minorNotice": "Photo floutée par défaut pour protéger un mineur (conformément au droit à l'image).",
+    "patientSituation": "Situation",
+    "verifiedBy": "Appel validé par"
+  },
+  "donate": {
+    "title": "Soutenir cet appel",
+    "amount": "Montant du don",
+    "method": "Moyen de paiement",
+    "methods": {
+      "cinetpay": "Mobile Money (CinetPay)",
+      "campay": "Orange / MTN (Campay)",
+      "flutterwave": "Carte bancaire (diaspora)"
+    },
+    "name": "Votre nom",
+    "email": "Votre e-mail (pour le reçu)",
+    "anonymous": "Faire un don anonyme",
+    "support": "Ajouter un soutien à la plateforme",
+    "commissionNotice": "Une commission de {rate} soutient le fonctionnement de la plateforme. Elle est affichée avant validation.",
+    "submit": "Donner {amount}",
+    "submitting": "Redirection vers le paiement…",
+    "success": "Merci ! Vous allez être redirigé pour finaliser votre don.",
+    "error": "Une erreur est survenue. Merci de réessayer.",
+    "share": "Partager cet appel"
+  },
+  "ngo": {
+    "title": "Espace ONG",
+    "subtitle": "Des organisations certifiées qui mènent des projets de santé, d'éducation et de développement.",
+    "initiatives": "Initiatives en cours",
+    "reports": "Rapports d'impact publics"
+  },
+  "auth": {
+    "title": "Espace partenaire",
+    "subtitle": "Réservé aux services sociaux d'hôpitaux, aux ONG agréées et aux administrateurs.",
+    "email": "E-mail professionnel",
+    "password": "Mot de passe",
+    "totp": "Code d'authentification (2FA)",
+    "signin": "Se connecter",
+    "signingIn": "Connexion…",
+    "mfaHint": "Une double authentification (TOTP) est requise pour les back-offices certifiés.",
+    "noAccount": "Pas encore de compte ? La certification se fait après vérification par notre équipe.",
+    "error": "Identifiants invalides ou compte non certifié."
+  },
+  "dashboard": {
+    "hospital": "Service Social — Hôpital",
+    "ngo": "Espace ONG",
+    "admin": "Administration",
+    "welcome": "Bienvenue",
+    "myCampaigns": "Mes appels à l'aide",
+    "newCampaign": "Nouvel appel",
+    "disbursements": "Déblocages",
+    "stats": "Statistiques",
+    "collected": "Total collecté",
+    "active": "Appels actifs",
+    "pendingReview": "En modération",
+    "pendingDisbursements": "Déblocages à valider",
+    "certifications": "Certifications en attente",
+    "comingSoon": "Module en cours de construction — l'API back-office est disponible."
+  },
+  "footer": {
+    "tagline": "La plateforme solidaire qui place la confiance au cœur du don.",
+    "platform": "Plateforme",
+    "legal": "Juridique & confiance",
+    "cgu": "Conditions générales",
+    "privacy": "Politique de confidentialité",
+    "ethics": "Charte éthique",
+    "contact": "Contact",
+    "rights": "Tous droits réservés.",
+    "compliance": "Conforme OHADA · COBAC · RGPD (diaspora UE)"
+  },
+  "common": {
+    "loading": "Chargement…",
+    "currency": "XAF"
+  }
+}

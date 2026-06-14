@@ -1,0 +1,11 @@
+{
+  "/[locale]/campaigns/[slug]/page": "app/[locale]/campaigns/[slug]/page.js",
+  "/[locale]/campaigns/page": "app/[locale]/campaigns/page.js",
+  "/[locale]/dashboard/page": "app/[locale]/dashboard/page.js",
+  "/[locale]/legal/[doc]/page": "app/[locale]/legal/[doc]/page.js",
+  "/[locale]/login/page": "app/[locale]/login/page.js",
+  "/[locale]/ngo/page": "app/[locale]/ngo/page.js",
+  "/[locale]/page": "app/[locale]/page.js",
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js"
+}
