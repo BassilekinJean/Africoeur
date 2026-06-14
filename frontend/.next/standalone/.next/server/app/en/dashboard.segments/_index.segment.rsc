@@ -1,6 +1,0 @@
-1:"$Sreact.fragment"
-2:I[39756,["/_next/static/chunks/05-c3ty_6dwfk.js","/_next/static/chunks/031d4hdncmqdj.js"],"default"]
-3:I[37457,["/_next/static/chunks/05-c3ty_6dwfk.js","/_next/static/chunks/031d4hdncmqdj.js"],"default"]
-4:I[22016,["/_next/static/chunks/05-c3ty_6dwfk.js","/_next/static/chunks/031d4hdncmqdj.js","/_next/static/chunks/1rxncug86bump.js"],""]
-:HL["/_next/static/chunks/0jkqj84ppxfz8.css","style"]
-0:{"rsc":["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/chunks/0jkqj84ppxfz8.css","precedence":"next"}],["$","script","script-0",{"src":"/_next/static/chunks/05-c3ty_6dwfk.js","async":true}],["$","script","script-1",{"src":"/_next/static/chunks/031d4hdncmqdj.js","async":true}]],["$","$L2",null,{"parallelRouterKey":"children","template":["$","$L3",null,{}],"notFound":[["$","html",null,{"lang":"fr","children":["$","body",null,{"style":{"fontFamily":"system-ui","textAlign":"center","padding":"6rem 1rem"},"children":[["$","h1",null,{"style":{"fontSize":"3rem","margin":0},"children":"404"}],["$","p",null,{"children":"Page introuvable / Page not found."}],["$","$L4",null,{"href":"/fr","children":"Africœur →"}]]}]}],[]]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"ygbPlcRnjLbfdxVrCQW7r"}
