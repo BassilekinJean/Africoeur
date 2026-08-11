@@ -1,3 +1,0 @@
-module.exports=[8909,a=>{"use strict";var b=a.i(7997),c=a.i(85221);a.s(["default",0,function(){return(0,b.jsxs)("div",{className:"container-page flex min-h-[60vh] flex-col items-center justify-center text-center",children:[(0,b.jsx)("span",{className:"font-display text-7xl text-clay-500",children:"404"}),(0,b.jsx)("p",{className:"mt-3 text-ink-soft",children:"Cette page est introuvable."}),(0,b.jsx)(c.Link,{href:"/",className:"btn-primary mt-6",children:"Retour à l'accueil"})]})}])},3078,a=>{a.n(a.i(8909))}];
-
-//# sourceMappingURL=src_app_%5Blocale%5D_not-found_tsx_0t57h-p._.js.map
