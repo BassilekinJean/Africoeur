@@ -157,7 +157,7 @@
     "pendingReview": "En modération",
     "pendingDisbursements": "Déblocages à valider",
     "certifications": "Certifications en attente",
-    "comingSoon": "Module en cours de construction — l'API back-office est disponible."
+    "loading": "Chargement du tableau de bord…"
   },
   "footer": {
     "tagline": "La plateforme solidaire qui place la confiance au cœur du don.",

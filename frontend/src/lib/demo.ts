@@ -1,4 +1,10 @@
-import type { Campaign, CampaignDetail, DonationPublic } from "@/types/api";
+import type {
+  Campaign,
+  CampaignDetail,
+  DisbursementRequest,
+  DonationPublic,
+  Organization,
+} from "@/types/api";
 
 /**
  * Données de démonstration utilisées en repli lorsque l'API Django n'est pas
@@ -107,6 +113,7 @@ export const DEMO_CAMPAIGNS: CampaignDetail[] = [
     field_updates: [
       {
         id: "fu-1",
+        campaign: "demo-3",
         title: "Fondations terminées",
         content:
           "Les fondations des trois salles sont coulées. Merci à tous les donateurs !",
@@ -117,6 +124,7 @@ export const DEMO_CAMPAIGNS: CampaignDetail[] = [
     fund_usage_reports: [
       {
         id: "fr-1",
+        campaign: "demo-3",
         title: "Tranche 1 — matériaux",
         description: "Achat de ciment, briques et fer à béton.",
         amount_used: "1800000",
@@ -180,4 +188,104 @@ export const DEMO_DONORS: DonationPublic[] = [
   },
 ];
 
+export const DEMO_DISBURSEMENTS: DisbursementRequest[] = [
+  {
+    id: "disb-1",
+    campaign: "demo-1",
+    campaign_title: "Opération du cœur pour Awa, 7 ans",
+    amount: "1500000",
+    currency: "XAF",
+    method: "direct_transfer",
+    beneficiary_name: "Hôpital Central de Yaoundé — Bloc Chirurgical",
+    purpose: "Acompte sur actes chirurgicaux & réanimation",
+    justification_paths: ["legal-docs/devis-bloc-awa.pdf"],
+    status: "approved",
+    admin_notes: "Devis vérifié et conforme au barème hospitalier.",
+    bank_reference: "VIR-2026-0810-09",
+    reviewed_at: "2026-05-15T10:00:00Z",
+    paid_at: "2026-05-16T14:30:00Z",
+    created_at: "2026-05-14T09:00:00Z",
+  },
+  {
+    id: "disb-2",
+    campaign: "demo-3",
+    campaign_title: "Une école pour le village de Bangou",
+    amount: "1800000",
+    currency: "XAF",
+    method: "conditional_check",
+    beneficiary_name: "Quincaillerie Générale du Littoral",
+    purpose: "Tranche 1 : Achat de ciment, fer à béton et agrégats",
+    justification_paths: ["legal-docs/facture-quincaillerie-bangou.pdf"],
+    status: "paid",
+    admin_notes: "Validation après audit des devis fournisseurs.",
+    bank_reference: "CHK-7740219",
+    reviewed_at: "2026-05-17T11:00:00Z",
+    paid_at: "2026-05-18T16:00:00Z",
+    created_at: "2026-05-16T15:20:00Z",
+  },
+  {
+    id: "disb-3",
+    campaign: "demo-2",
+    campaign_title: "Prise en charge des grands brûlés — Joseph",
+    amount: "500000",
+    currency: "XAF",
+    method: "direct_transfer",
+    beneficiary_name: "Pharmacie Principale Hôpital Central",
+    purpose: "Achat d'antiseptiques et pansements spécialisés pour greffe",
+    justification_paths: ["legal-docs/bon-pharmacie-joseph.pdf"],
+    status: "pending",
+    admin_notes: "",
+    bank_reference: "",
+    reviewed_at: null,
+    paid_at: null,
+    created_at: "2026-05-25T11:00:00Z",
+  },
+];
+
+export const DEMO_ORGANIZATIONS: Organization[] = [
+  {
+    id: "org-1",
+    type: "hospital",
+    name: "Hôpital Central de Yaoundé — Service Social",
+    legal_status: "Établissement Public de Santé",
+    registration_number: "MINSANTE-HCY-2024",
+    country: "CM",
+    city: "Yaoundé",
+    intervention_zones: ["Centre", "Littoral"],
+    action_domains: ["Santé infantile", "Chirurgie cardiaque", "Urgence"],
+    description:
+      "Service social chargé de l'accompagnement des patients démunis et de l'administration des cagnottes de santé.",
+    website: "https://hopitalcentral.cm",
+    contact_email: "social@hopitalcentral.cm",
+    contact_phone: "+237 222 23 45 67",
+    certification_status: "certified",
+    certified_at: "2026-01-10T10:00:00Z",
+    is_certified: true,
+    is_premium: true,
+    created_at: "2026-01-01T08:00:00Z",
+  },
+  {
+    id: "org-2",
+    type: "ngo",
+    name: "Solidarité Santé Afrique",
+    legal_status: "ONG à but non lucratif",
+    registration_number: "ONG-SSA-2022-88",
+    country: "CM",
+    city: "Douala",
+    intervention_zones: ["Cameroun", "Togo"],
+    action_domains: ["Éducation", "Eau potable", "Santé communautaire"],
+    description:
+      "ONG œuvrant pour l'accès aux soins et à l'éducation en milieu rural.",
+    website: "https://solidaritesanteafrique.org",
+    contact_email: "contact@solidaritesanteafrique.org",
+    contact_phone: "+237 699 00 11 22",
+    certification_status: "certified",
+    certified_at: "2026-02-15T09:00:00Z",
+    is_certified: true,
+    is_premium: false,
+    created_at: "2026-02-01T09:00:00Z",
+  },
+];
+
 export const asListItem = (c: CampaignDetail): Campaign => c;
+
