@@ -19,8 +19,8 @@ class DisbursementRequest(TimeStampedModel):
     """
     Demande de déblocage de fonds soumise par le service social / l'ONG.
 
-    La famille ne touche jamais les fonds : versement au partenaire (hôpital,
-    fournisseur) via chèque conditionné ou virement, sur validation admin.
+     Versement au partenaire (hôpital,fournisseur) via chèque conditionné ou 
+     virement, sur validation admin.
     Déblocage possible par tranches (cas ONG).
     """
 
