@@ -102,10 +102,12 @@ WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
 # --------------------------------------------------------------------------- #
-# Base de données — Supabase PostgreSQL
+# Base de données — Supabase PostgreSQL ou PostgreSQL local
 # --------------------------------------------------------------------------- #
+USE_LOCAL_DB = env_bool("USE_LOCAL_DB", False)
 DATABASE_URL = os.getenv("DATABASE_URL")
-if DATABASE_URL:
+
+if not USE_LOCAL_DB and DATABASE_URL:
     import urllib.parse as _urlparse
 
     _urlparse.uses_netloc.append("postgres")
@@ -126,9 +128,9 @@ else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.getenv("POSTGRES_DB", "postgres"),
+            "NAME": os.getenv("POSTGRES_DB", "africoeur"),
             "USER": os.getenv("POSTGRES_USER", "postgres"),
-            "PASSWORD": os.getenv("POSTGRES_PASSWORD", "postgres"),
+            "PASSWORD": os.getenv("POSTGRES_PASSWORD", "password"),
             "HOST": os.getenv("POSTGRES_HOST", "localhost"),
             "PORT": os.getenv("POSTGRES_PORT", "5432"),
             "CONN_MAX_AGE": 60,

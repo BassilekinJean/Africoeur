@@ -32,7 +32,7 @@ class Campaign(TimeStampedModel):
     """
     Appel à l'aide validé : cas médical (hôpital) ou caisse de projet (ONG).
 
-    Aucun accès famille : la cagnotte est administrée par l'organisation.
+    La cagnotte est administrée par l'organisation.
     Le déblocage des fonds passe par le workflow `disbursements`.
     """
 

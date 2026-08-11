@@ -157,7 +157,7 @@
     "pendingReview": "In review",
     "pendingDisbursements": "Disbursements to approve",
     "certifications": "Pending certifications",
-    "comingSoon": "Module under construction — the back-office API is available."
+    "loading": "Loading dashboard…"
   },
   "footer": {
     "tagline": "The solidarity platform that puts trust at the heart of giving.",

@@ -1,6 +1,12 @@
 {
   "pages": {},
-  "app": {},
-  "appUsingSizeAdjust": false,
+  "app": {
+    "[project]/src/app/[locale]/legal/[doc]/page": [
+      "static/media/3c7c6164b2587822-s.p.16u3vygyjnhr0.woff2",
+      "static/media/03bda585a99c6450-s.p.32sris142tqlb.woff2",
+      "static/media/fba5a26ea33df6a3-s.p.18rizl4rsrl42.woff2"
+    ]
+  },
+  "appUsingSizeAdjust": true,
   "pagesUsingSizeAdjust": false
 }
