@@ -1,35 +1,3 @@
-# Dependencies
-node_modules/
-.venv/
-venv/
-ENV/
-env/
-dist/
-dist-ssr/
-build/
-out/
-
-# Next.js
-.next/
-next-env.d.ts
-
-# Python / Django
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-db.sqlite3
-backend/db.sqlite3
-media/
-backend/media/
-static/
-backend/static/
-backend/collected_static/
-*.egg-info/
-.installed.cfg
-*.egg
-
 # Environment variables
 .env
 .env.local
@@ -55,68 +23,60 @@ Thumbs.db
 *.swp
 *.swo
 
+# Docker
+.docker/
+
 # Supabase
 supabase/.branches
 supabase/.temp
 
-# Testing
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-.pytest_cache/
+# Generic dependencies/build
+node_modules/
+dist/
+dist-ssr/
+build/
+out/
 
-/* Lines 1-13 omitted */
-# Next.js
-.next/
-next-env.d.ts
-
-# Python / Django
+# Backend (Python/Django)
+.venv
+venv/
+ENV/
+env/
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-# Ignorer tous les fichiers sqlite au cas où
+*.egg-info/
+.installed.cfg
+*.egg
 *.sqlite3
 backend/db.sqlite3
-
-# Dossiers générés et médias
 media/
 backend/media/
 static/
 backend/static/
 backend/collected_static/
 backend/staticfiles/
-
-# Configuration locale
 backend/local_settings.py
-
-# Fichiers de build Python
-*.egg-info/
-.installed.cfg
-*.egg
-build/
-dist/
-
-# Celery
+backend/.mypy_cache/
+backend/.ruff_cache/
+backend/.hypothesis/
+backend/.pyre/
 celerybeat-schedule
 celerybeat.pid
 
-/* Lines 34-45 omitted */
-# Editor / OS
-.DS_Store
-Thumbs.db
-.vscode/
-!.vscode/extensions.json
-.idea/
-*.swp
-*.swo
+# Frontend (Next.js/Node)
+.next/
+next-env.d.ts
+frontend/.turbo/
+frontend/.vercel/
+frontend/coverage/
+frontend/.npm/
+frontend/.pnpm-store/
+frontend/.yarn/
 
-/* Lines 52-61 omitted */
-# Testing
+# Testing / coverage
 htmlcov/
 .tox/
 .nox/
@@ -124,6 +84,3 @@ htmlcov/
 .coverage.*
 .cache
 .pytest_cache/
-
-# Docker
-.docker/

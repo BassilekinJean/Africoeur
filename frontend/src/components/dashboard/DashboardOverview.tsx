@@ -49,6 +49,8 @@ import {
   rejectDisbursement,
   markDisbursementPaid,
   getOrganizations,
+  getMyOrganization,
+  updateMyOrganization,
   certifyOrganization,
 } from "@/lib/api";
 import { useRouter, Link } from "@/i18n/routing";
@@ -89,6 +91,7 @@ export function DashboardOverview() {
   const [campaigns, setCampaigns] = useState<CampaignDetail[]>([]);
   const [disbursements, setDisbursements] = useState<DisbursementRequest[]>([]);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [myOrganization, setMyOrganization] = useState<Organization | null>(null);
 
   // Filters & Search
   const [campaignFilter, setCampaignFilter] = useState<string>("all");
@@ -175,6 +178,11 @@ export function DashboardOverview() {
       setCampaigns(cList);
       setDisbursements(dList);
       setOrganizations(oList);
+
+      if (authToken) {
+        const org = await getMyOrganization(authToken);
+        setMyOrganization(org);
+      }
     } catch (err) {
       console.error("Failed to load dashboard data:", err);
     } finally {
@@ -472,6 +480,7 @@ export function DashboardOverview() {
   if (!me) return null;
 
   const meta = ROLE_META[me.role] || ROLE_META.hospital_agent;
+  const organizationView = isAdmin ? organizations : myOrganization ? [myOrganization] : [];
 
   const cards = isAdmin
     ? [
@@ -995,8 +1004,78 @@ export function DashboardOverview() {
       {/* TAB 4: ORGANISATIONS */}
       {activeTab === "organization" && (
         <div className="space-y-6">
+          {!isAdmin && myOrganization && (
+            <div className="card p-6 space-y-4 max-w-3xl">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <span className="eyebrow">Mon organisation</span>
+                  <h3 className="font-display text-xl font-semibold text-ink">{myOrganization.name}</h3>
+                </div>
+                <span className={`chip text-[10px] font-bold ${myOrganization.is_certified ? "!bg-forest-50 !text-forest-600" : "!bg-ochre-50 !text-ochre-600"}`}>
+                  {myOrganization.certification_status}
+                </span>
+              </div>
+
+              <form
+                className="grid gap-4 sm:grid-cols-2"
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const form = new FormData(e.currentTarget);
+                  const payload = {
+                    name: String(form.get("name") || ""),
+                    city: String(form.get("city") || ""),
+                    country: String(form.get("country") || ""),
+                    contact_email: String(form.get("contact_email") || ""),
+                    contact_phone: String(form.get("contact_phone") || ""),
+                    website: String(form.get("website") || ""),
+                    description: String(form.get("description") || ""),
+                  };
+                  const res = await updateMyOrganization(payload, token);
+                  if (res.success) {
+                    showToast("Organisation mise à jour.");
+                    await loadDashboardData(token);
+                  } else {
+                    showToast(res.error || "Mise à jour impossible.", "error");
+                  }
+                }}
+              >
+                <div>
+                  <label className="font-semibold text-ink-muted uppercase text-[10px]">Nom</label>
+                  <input name="name" defaultValue={myOrganization.name} className="field mt-1" />
+                </div>
+                <div>
+                  <label className="font-semibold text-ink-muted uppercase text-[10px]">Ville</label>
+                  <input name="city" defaultValue={myOrganization.city || ""} className="field mt-1" />
+                </div>
+                <div>
+                  <label className="font-semibold text-ink-muted uppercase text-[10px]">Pays</label>
+                  <input name="country" defaultValue={myOrganization.country} className="field mt-1" />
+                </div>
+                <div>
+                  <label className="font-semibold text-ink-muted uppercase text-[10px]">Email contact</label>
+                  <input name="contact_email" defaultValue={myOrganization.contact_email || ""} className="field mt-1" />
+                </div>
+                <div>
+                  <label className="font-semibold text-ink-muted uppercase text-[10px]">Téléphone</label>
+                  <input name="contact_phone" defaultValue={myOrganization.contact_phone || ""} className="field mt-1" />
+                </div>
+                <div>
+                  <label className="font-semibold text-ink-muted uppercase text-[10px]">Site web</label>
+                  <input name="website" defaultValue={myOrganization.website || ""} className="field mt-1" />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="font-semibold text-ink-muted uppercase text-[10px]">Description</label>
+                  <textarea name="description" defaultValue={myOrganization.description || ""} className="field mt-1 min-h-28" />
+                </div>
+                <div className="sm:col-span-2 flex justify-end">
+                  <button type="submit" className="btn-primary text-xs">Enregistrer</button>
+                </div>
+              </form>
+            </div>
+          )}
+
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {organizations.map((org) => (
+            {organizationView.map((org) => (
               <div key={org.id} className="card p-6 space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="chip uppercase font-bold text-[10px]">{org.type}</span>

@@ -507,6 +507,38 @@ export async function getOrganizations(token?: string): Promise<Organization[]> 
   return DEMO_ORGANIZATIONS;
 }
 
+export async function getMyOrganization(token?: string): Promise<Organization | null> {
+  if (!token) return null;
+  const data = await safeFetch<Organization>("/organizations/me/", {
+    headers: getAuthHeaders(token),
+  });
+  return data;
+}
+
+export async function updateMyOrganization(
+  payload: Partial<Organization>,
+  token?: string,
+): Promise<{ success: boolean; data?: Organization; error?: string }> {
+  if (!token) {
+    return { success: false, error: "Authentification requise." };
+  }
+  try {
+    const res = await fetch(`${API_BASE}/organizations/me/`, {
+      method: "PATCH",
+      headers: getAuthHeaders(token),
+      body: JSON.stringify(payload),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return { success: true, data };
+    }
+    const err = await res.json();
+    return { success: false, error: err.detail || JSON.stringify(err) };
+  } catch {
+    return { success: false, error: "Impossible de mettre à jour l'organisation." };
+  }
+}
+
 export async function certifyOrganization(
   id: string,
   token?: string,

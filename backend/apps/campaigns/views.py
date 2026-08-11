@@ -61,7 +61,11 @@ class CampaignViewSet(viewsets.ModelViewSet):
         if self.action == "retrieve":
             if user and user.is_authenticated and getattr(user, "is_admin", False):
                 return qs
+            if user and user.is_authenticated and getattr(user, "organization_id", None):
+                return qs.filter(organization_id=getattr(user, "organization_id", None))
             return qs.filter(status__in=PUBLIC_STATUSES)
+        if user and user.is_authenticated and getattr(user, "organization_id", None):
+            return qs.filter(organization_id=getattr(user, "organization_id", None))
         return qs.filter(status__in=PUBLIC_STATUSES)
 
     def perform_create(self, serializer):
