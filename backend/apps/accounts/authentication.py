@@ -8,9 +8,13 @@ qui satisfait l'interface attendue (`is_authenticated`, etc.).
 """
 from __future__ import annotations
 
+import uuid
+
 import jwt
 from django.conf import settings
 from rest_framework import authentication, exceptions
+
+from apps.organizations.models import CertificationStatus, Organization, OrganizationType
 
 from .models import Profile, Role
 
@@ -59,9 +63,102 @@ class SupabaseJWTAuthentication(authentication.BaseAuthentication):
             raise exceptions.AuthenticationFailed("En-tête Authorization invalide.")
 
         token = auth_header[1].decode()
+        if settings.DEBUG and token.startswith("demo:"):
+            profile = self._authenticate_demo(token)
+            return SupabaseUser(profile, {"demo": True}), token
         claims = self._decode(token)
         profile = self._sync_profile(claims)
         return SupabaseUser(profile, claims), token
+
+    def _authenticate_demo(self, token: str) -> Profile:
+        email = token.removeprefix("demo:").strip().lower()
+        if not email:
+            raise exceptions.AuthenticationFailed("Jeton démo invalide.")
+
+        local_part = email.split("@", 1)[0]
+        role = Role.DONOR
+        full_name = "Donateur démo"
+        organization = None
+
+        if local_part.startswith("admin"):
+            role = Role.ADMIN
+            full_name = "Administrateur Africœur"
+        elif "ong" in local_part:
+            role = Role.NGO_AGENT
+            full_name = "Agent Solidarité Santé"
+            organization = self._get_or_create_demo_organization(
+                OrganizationType.NGO,
+                "Solidarité Santé Afrique",
+                "Douala",
+                "ONG dédiée à l'accès aux soins en zones rurales.",
+                action_domains=["santé", "éducation"],
+                intervention_zones=["CM", "TG"],
+            )
+        elif "hopital" in local_part or "hospital" in local_part:
+            role = Role.HOSPITAL_AGENT
+            full_name = "Agent Hôpital Central"
+            organization = self._get_or_create_demo_organization(
+                OrganizationType.HOSPITAL,
+                "Hôpital Central de Yaoundé — Service Social",
+                "Yaoundé",
+                "Service social de l'Hôpital Central de Yaoundé.",
+            )
+
+        profile, created = Profile.objects.get_or_create(
+            supabase_user_id=uuid.uuid5(uuid.NAMESPACE_DNS, email),
+            defaults={
+                "email": email,
+                "full_name": full_name,
+                "role": role,
+                "organization": organization,
+                "is_active": True,
+            },
+        )
+
+        changed = False
+        if profile.email != email:
+            profile.email = email
+            changed = True
+        if profile.full_name != full_name:
+            profile.full_name = full_name
+            changed = True
+        if profile.role != role:
+            profile.role = role
+            changed = True
+        if organization and profile.organization_id != organization.id:
+            profile.organization = organization
+            changed = True
+        if not profile.is_active:
+            profile.is_active = True
+            changed = True
+        if changed or created:
+            profile.save()
+
+        return profile
+
+    def _get_or_create_demo_organization(
+        self,
+        org_type: str,
+        name: str,
+        city: str,
+        description: str,
+        **extra_fields,
+    ) -> Organization:
+        org, _ = Organization.objects.get_or_create(
+            name=name,
+            defaults={
+                "type": org_type,
+                "country": "CM",
+                "city": city,
+                "description": description,
+                "certification_status": CertificationStatus.CERTIFIED,
+                **extra_fields,
+            },
+        )
+        if not org.is_certified:
+            org.certification_status = CertificationStatus.CERTIFIED
+            org.save(update_fields=["certification_status", "updated_at"])
+        return org
 
     def _decode(self, token: str) -> dict:
         secret = settings.SUPABASE_JWT_SECRET

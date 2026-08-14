@@ -47,6 +47,54 @@ function getAuthHeaders(token?: string): Record<string, string> {
   return headers;
 }
 
+function formatApiError(error: unknown): string {
+  if (!error) {
+    return "La demande n’a pas pu être créée. Vérifiez les informations saisies.";
+  }
+
+  if (typeof error === "string") {
+    return error;
+  }
+
+  if (Array.isArray(error)) {
+    return error.map((item) => formatApiError(item)).join(" ");
+  }
+
+  if (typeof error === "object") {
+    const fieldLabels: Record<string, string> = {
+      campaign: "la campagne",
+      amount: "le montant demandé",
+      beneficiary_name: "le bénéficiaire",
+      purpose: "l’objet de la dépense",
+      method: "le mode de versement",
+      justification_paths: "les justificatifs",
+      non_field_errors: "La demande",
+      detail: "La demande",
+    };
+
+    const messages: string[] = [];
+
+    for (const [key, value] of Object.entries(error as Record<string, unknown>)) {
+      const label = fieldLabels[key] ?? key;
+      const message = Array.isArray(value)
+        ? value.map((item) => formatApiError(item)).join(" ")
+        : typeof value === "string"
+          ? value
+          : JSON.stringify(value);
+
+      if (message) {
+        const normalized = message.replace(/\[|\]|"/g, "").trim();
+        messages.push(normalized.startsWith(label) ? normalized : `${label}: ${normalized}`);
+      }
+    }
+
+    if (messages.length) return messages.join(" ");
+    return JSON.stringify(error);
+  }
+
+  return "La demande n’a pas pu être créée. Vérifiez les informations saisies.";
+}
+
 function filterDemo(query: CampaignQuery): Campaign[] {
   return DEMO_CAMPAIGNS.filter((c) => {
     if (query.type && c.type !== query.type) return false;
@@ -129,50 +177,7 @@ export async function createCampaign(
       // Fallback below
     }
   }
-  // Local fallback for demo mode
-  const newCamp: CampaignDetail = {
-    id: `demo-${Date.now()}`,
-    type: payload.type,
-    category: payload.category,
-    title: payload.title,
-    slug: payload.title.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-    summary: payload.summary,
-    description: payload.description,
-    country: payload.country,
-    target_amount: payload.target_amount,
-    collected_amount: "0",
-    currency: payload.currency || "XAF",
-    donor_count: 0,
-    progress_pct: 0,
-    cover_image_path:
-      payload.cover_image_path ||
-      "https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?auto=format&fit=crop&w=1200&q=70",
-    video_path: payload.video_path || "",
-    status: "draft",
-    deadline: payload.deadline || null,
-    organization_name: "Organisation démo",
-    organization_type: payload.type === "medical" ? "hospital" : "ngo",
-    published_at: null,
-    budget_justification_path: payload.budget_justification_path || "",
-    consent_form_path: payload.consent_form_path || "",
-    internal_notes: payload.internal_notes || "",
-    patient:
-      payload.type === "medical"
-        ? {
-            display_name: "Patient",
-            age: 10,
-            is_minor: true,
-            general_situation: payload.summary,
-            display_level: 1,
-            photo_path: "",
-            video_path: "",
-          }
-        : null,
-    field_updates: [],
-    fund_usage_reports: [],
-  };
-  DEMO_CAMPAIGNS.unshift(newCamp);
-  return { success: true, data: newCamp };
+  return { success: false, error: "Création impossible sans authentification ou API disponible." };
 }
 
 export async function submitCampaign(
@@ -193,12 +198,7 @@ export async function submitCampaign(
       return { success: false, error: err.detail || JSON.stringify(err) };
     } catch (e: any) {}
   }
-  const found = DEMO_CAMPAIGNS.find((c) => c.slug === slug);
-  if (found) {
-    found.status = "pending_review";
-    return { success: true, data: found };
-  }
-  return { success: false, error: "Campagne introuvable." };
+  return { success: false, error: "Soumission impossible sans authentification ou API disponible." };
 }
 
 export async function approveCampaign(
@@ -221,14 +221,7 @@ export async function approveCampaign(
       return { success: false, error: err.detail || JSON.stringify(err) };
     } catch (e: any) {}
   }
-  const found = DEMO_CAMPAIGNS.find((c) => c.slug === slug);
-  if (found) {
-    found.status = "active";
-    found.published_at = new Date().toISOString();
-    found.moderation_notes = notes || "";
-    return { success: true, data: found };
-  }
-  return { success: false, error: "Campagne introuvable." };
+  return { success: false, error: "Validation impossible sans authentification ou API disponible." };
 }
 
 export async function rejectCampaign(
@@ -251,13 +244,7 @@ export async function rejectCampaign(
       return { success: false, error: err.detail || JSON.stringify(err) };
     } catch (e: any) {}
   }
-  const found = DEMO_CAMPAIGNS.find((c) => c.slug === slug);
-  if (found) {
-    found.status = "rejected";
-    found.moderation_notes = notes || "";
-    return { success: true, data: found };
-  }
-  return { success: false, error: "Campagne introuvable." };
+  return { success: false, error: "Rejet impossible sans authentification ou API disponible." };
 }
 
 export async function closeCampaign(
@@ -280,12 +267,7 @@ export async function closeCampaign(
       return { success: false, error: err.detail || JSON.stringify(err) };
     } catch (e: any) {}
   }
-  const found = DEMO_CAMPAIGNS.find((c) => c.slug === slug);
-  if (found) {
-    found.status = "closed";
-    return { success: true, data: found };
-  }
-  return { success: false, error: "Campagne introuvable." };
+  return { success: false, error: "Clôture impossible sans authentification ou API disponible." };
 }
 
 // --- Field Updates & Fund Usage Reports ---
@@ -306,19 +288,7 @@ export async function createFieldUpdate(
       }
     } catch (e) {}
   }
-  const update: FieldUpdate = {
-    id: `fu-${Date.now()}`,
-    campaign: payload.campaign,
-    title: payload.title,
-    content: payload.content,
-    media_paths: payload.media_paths || [],
-    created_at: new Date().toISOString(),
-  };
-  const camp = DEMO_CAMPAIGNS.find((c) => c.id === payload.campaign);
-  if (camp) {
-    camp.field_updates.unshift(update);
-  }
-  return { success: true, data: update };
+  return { success: false, error: "Publication impossible sans authentification ou API disponible." };
 }
 
 export async function createFundUsageReport(
@@ -344,20 +314,7 @@ export async function createFundUsageReport(
       }
     } catch (e) {}
   }
-  const report: FundUsageReport = {
-    id: `fr-${Date.now()}`,
-    campaign: payload.campaign,
-    title: payload.title,
-    description: payload.description,
-    amount_used: payload.amount_used,
-    attachment_paths: payload.attachment_paths || [],
-    created_at: new Date().toISOString(),
-  };
-  const camp = DEMO_CAMPAIGNS.find((c) => c.id === payload.campaign);
-  if (camp) {
-    camp.fund_usage_reports.unshift(report);
-  }
-  return { success: true, data: report };
+  return { success: false, error: "Publication impossible sans authentification ou API disponible." };
 }
 
 // --- Disbursements ---
@@ -386,30 +343,11 @@ export async function createDisbursement(
         const data = await res.json();
         return { success: true, data };
       }
-      const err = await res.json();
-      return { success: false, error: JSON.stringify(err) };
+      const err = await res.json().catch(() => null);
+      return { success: false, error: formatApiError(err) };
     } catch (e) {}
   }
-  const camp = DEMO_CAMPAIGNS.find((c) => c.id === payload.campaign);
-  const newDisb: DisbursementRequest = {
-    id: `disb-${Date.now()}`,
-    campaign: payload.campaign,
-    campaign_title: camp ? camp.title : "Appel sélectionné",
-    amount: payload.amount,
-    currency: payload.currency || "XAF",
-    method: payload.method || "direct_transfer",
-    beneficiary_name: payload.beneficiary_name,
-    purpose: payload.purpose,
-    justification_paths: payload.justification_paths || [],
-    status: "pending",
-    admin_notes: "",
-    bank_reference: "",
-    reviewed_at: null,
-    paid_at: null,
-    created_at: new Date().toISOString(),
-  };
-  DEMO_DISBURSEMENTS.unshift(newDisb);
-  return { success: true, data: newDisb };
+  return { success: false, error: "Demande de déblocage impossible sans authentification ou API disponible." };
 }
 
 export async function approveDisbursement(
@@ -430,14 +368,7 @@ export async function approveDisbursement(
       }
     } catch (e) {}
   }
-  const item = DEMO_DISBURSEMENTS.find((d) => d.id === id);
-  if (item) {
-    item.status = "approved";
-    item.admin_notes = notes || "";
-    item.reviewed_at = new Date().toISOString();
-    return { success: true, data: item };
-  }
-  return { success: false, error: "Demande introuvable." };
+  return { success: false, error: "Validation impossible sans authentification ou API disponible." };
 }
 
 export async function rejectDisbursement(
@@ -458,14 +389,7 @@ export async function rejectDisbursement(
       }
     } catch (e) {}
   }
-  const item = DEMO_DISBURSEMENTS.find((d) => d.id === id);
-  if (item) {
-    item.status = "rejected";
-    item.admin_notes = notes || "";
-    item.reviewed_at = new Date().toISOString();
-    return { success: true, data: item };
-  }
-  return { success: false, error: "Demande introuvable." };
+  return { success: false, error: "Rejet impossible sans authentification ou API disponible." };
 }
 
 export async function markDisbursementPaid(
@@ -486,14 +410,7 @@ export async function markDisbursementPaid(
       }
     } catch (e) {}
   }
-  const item = DEMO_DISBURSEMENTS.find((d) => d.id === id);
-  if (item) {
-    item.status = "paid";
-    item.bank_reference = bankReference;
-    item.paid_at = new Date().toISOString();
-    return { success: true, data: item };
-  }
-  return { success: false, error: "Demande introuvable." };
+  return { success: false, error: "Marquage payé impossible sans authentification ou API disponible." };
 }
 
 // --- Organizations ---
@@ -555,14 +472,7 @@ export async function certifyOrganization(
       }
     } catch (e) {}
   }
-  const org = DEMO_ORGANIZATIONS.find((o) => o.id === id);
-  if (org) {
-    org.certification_status = "certified";
-    org.is_certified = true;
-    org.certified_at = new Date().toISOString();
-    return { success: true, data: org };
-  }
-  return { success: false, error: "Organisation introuvable." };
+  return { success: false, error: "Certification impossible sans authentification ou API disponible." };
 }
 
 export { API_BASE };

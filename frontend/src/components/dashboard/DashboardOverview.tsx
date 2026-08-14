@@ -214,6 +214,7 @@ export function DashboardOverview() {
         } else if (savedDemoUser) {
           try {
             const parsed = JSON.parse(savedDemoUser);
+            const demoToken = parsed.demo_token || `demo:${parsed.email}`;
             setMe({
               id: "demo-user-id",
               supabase_user_id: "demo-user-id",
@@ -227,6 +228,8 @@ export function DashboardOverview() {
               is_active: true,
               created_at: new Date().toISOString(),
             });
+            authToken = demoToken;
+            setToken(authToken);
           } catch {
             localStorage.removeItem("africoeur_demo_user");
           }
@@ -234,6 +237,7 @@ export function DashboardOverview() {
       } else if (savedDemoUser) {
         try {
           const parsed = JSON.parse(savedDemoUser);
+          const demoToken = parsed.demo_token || `demo:${parsed.email}`;
           setMe({
             id: "demo-user-id",
             supabase_user_id: "demo-user-id",
@@ -247,6 +251,8 @@ export function DashboardOverview() {
             is_active: true,
             created_at: new Date().toISOString(),
           });
+          authToken = demoToken;
+          setToken(authToken);
         } catch {
           localStorage.removeItem("africoeur_demo_user");
         }
@@ -318,7 +324,6 @@ export function DashboardOverview() {
     });
   }, [campaigns, campaignFilter, campaignSearch]);
 
-  // Filtered Disbursements
   const filteredDisbursements = useMemo(() => {
     return disbursements.filter((d) => {
       if (disbursementFilter !== "all" && d.status !== disbursementFilter) return false;
@@ -395,8 +400,24 @@ export function DashboardOverview() {
 
   const handleCreateDisbursement = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newDisbursementForm.campaign || !newDisbursementForm.amount || !newDisbursementForm.beneficiary_name) {
-      showToast("Veuillez remplir la campagne, le montant et le bénéficiaire.", "error");
+    if (
+      !newDisbursementForm.campaign ||
+      !newDisbursementForm.amount ||
+      !newDisbursementForm.beneficiary_name ||
+      !newDisbursementForm.purpose
+    ) {
+      showToast(
+        "Veuillez remplir tous les champs obligatoires : campagne, montant, bénéficiaire et objet de la dépense.",
+        "error"
+      );
+      return;
+    }
+    if (Number(newDisbursementForm.amount) <= 0) {
+      showToast("Le montant demandé doit être supérieur à 0.", "error");
+      return;
+    }
+    if (!token) {
+      showToast("Authentification requise pour créer un déblocage.", "error");
       return;
     }
     const res = await createDisbursement(
@@ -418,6 +439,10 @@ export function DashboardOverview() {
   const handleCreateFieldUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!showFieldUpdateModal || !fieldUpdateForm.title || !fieldUpdateForm.content) return;
+    if (!token) {
+      showToast("Authentification requise pour publier une mise à jour.", "error");
+      return;
+    }
     const res = await createFieldUpdate(
       {
         campaign: showFieldUpdateModal,
@@ -439,6 +464,10 @@ export function DashboardOverview() {
   const handleCreateFundReport = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!showFundReportModal || !fundReportForm.title || !fundReportForm.amount_used) return;
+    if (!token) {
+      showToast("Authentification requise pour publier un rapport.", "error");
+      return;
+    }
     const res = await createFundUsageReport(
       {
         campaign: showFundReportModal,
@@ -459,6 +488,10 @@ export function DashboardOverview() {
   };
 
   const handleCertifyOrg = async (id: string) => {
+    if (!token) {
+      showToast("Authentification requise pour certifier une organisation.", "error");
+      return;
+    }
     const res = await certifyOrganization(id, token);
     if (res.success) {
       showToast("Organisation certifiée avec succès !");
@@ -501,7 +534,7 @@ export function DashboardOverview() {
       {/* Toast Notification */}
       {feedback && (
         <div
-          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-2xl px-5 py-4 shadow-xl backdrop-blur-md transition-all ${
+          className={`fixed bottom-6 right-6 z-[9999] flex items-center gap-3 rounded-2xl px-5 py-4 shadow-xl backdrop-blur-md transition-all ${
             feedback.type === "success"
               ? "bg-forest-500 text-white"
               : "bg-clay-600 text-white"
@@ -535,7 +568,9 @@ export function DashboardOverview() {
 
         <div className="flex flex-wrap items-center gap-2">
           <button
-            onClick={() => loadDashboardData(token)}
+            onClick={() => {
+              void loadDashboardData(token);
+            }}
             disabled={refreshing}
             className="btn-ghost flex items-center gap-1.5 text-xs text-ink-soft hover:text-ink"
             title="Rafraîchir"
@@ -1020,6 +1055,10 @@ export function DashboardOverview() {
                 className="grid gap-4 sm:grid-cols-2"
                 onSubmit={async (e) => {
                   e.preventDefault();
+                  if (!token) {
+                    showToast("Authentification requise pour modifier l'organisation.", "error");
+                    return;
+                  }
                   const form = new FormData(e.currentTarget);
                   const payload = {
                     name: String(form.get("name") || ""),
@@ -1262,7 +1301,7 @@ export function DashboardOverview() {
 
       {/* MODAL: NOUVEAU DÉBLOCAGE */}
       {showNewDisbursementModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
           <div className="card w-full max-w-lg p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-ink/5 pb-3">
               <h3 className="font-display text-xl font-semibold text-ink">Demande de déblocage de fonds</h3>

@@ -34,6 +34,7 @@ export function LoginForm() {
         organization_name: isNgo
           ? "Solidarité Santé Afrique"
           : "Hôpital Central de Yaoundé — Service Social",
+        demo_token: `demo:${email}`,
       };
       localStorage.setItem("africoeur_demo_user", JSON.stringify(demoUser));
       router.push("/dashboard");
