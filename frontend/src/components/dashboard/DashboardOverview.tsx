@@ -86,6 +86,7 @@ export function DashboardOverview() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<ActiveTab>("overview");
   const [refreshing, setRefreshing] = useState(false);
+  const [creatingCampaign, setCreatingCampaign] = useState(false);
 
   // Data
   const [campaigns, setCampaigns] = useState<CampaignDetail[]>([]);
@@ -358,13 +359,18 @@ export function DashboardOverview() {
       internal_notes: newCampaignForm.internal_notes || "",
     };
 
-    const res = await createCampaign(payload, token);
-    if (res.success) {
-      showToast("Campagne créée avec succès !");
-      setShowNewCampaignModal(false);
-      await loadDashboardData(token);
-    } else {
-      showToast(res.error || "Erreur lors de la création de la campagne.", "error");
+    setCreatingCampaign(true);
+    try {
+      const res = await createCampaign(payload, token);
+      if (res.success) {
+        showToast("Campagne créée avec succès !");
+        setShowNewCampaignModal(false);
+        await loadDashboardData(token);
+      } else {
+        showToast(res.error || "Erreur lors de la création de la campagne.", "error");
+      }
+    } finally {
+      setCreatingCampaign(false);
     }
   };
 
@@ -1334,8 +1340,20 @@ export function DashboardOverview() {
                 >
                   Annuler
                 </button>
-                <button type="submit" className="btn-primary">
-                  Créer l'appel
+                <button
+                  type="submit"
+                  disabled={creatingCampaign}
+                  aria-busy={creatingCampaign}
+                  className="btn-primary min-w-36 disabled:cursor-wait disabled:opacity-70"
+                >
+                  {creatingCampaign ? (
+                    <>
+                      <Loader2 size={15} className="animate-spin" aria-hidden="true" />
+                      Création…
+                    </>
+                  ) : (
+                    "Créer l'appel"
+                  )}
                 </button>
               </div>
             </form>
