@@ -78,6 +78,16 @@ class CampaignDetailSerializer(CampaignListSerializer):
 class CampaignWriteSerializer(serializers.ModelSerializer):
     """Création / mise à jour par un partenaire certifié."""
 
+    deadline = serializers.DateField(
+        required=True,
+        allow_null=False,
+        error_messages={
+            "required": "La date limite est obligatoire.",
+            "null": "La date limite est obligatoire.",
+            "invalid": "La date limite doit être au format YYYY-MM-DD.",
+        },
+    )
+
     class Meta:
         model = Campaign
         fields = [

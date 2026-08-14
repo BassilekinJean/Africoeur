@@ -106,7 +106,7 @@ export interface CampaignWriteInput {
   currency?: string;
   cover_image_path?: string;
   video_path?: string;
-  deadline?: string;
+  deadline: string;
   budget_justification_path?: string;
   consent_form_path?: string;
   internal_notes?: string;
@@ -177,4 +177,3 @@ export interface Paginated<T> {
   previous: string | null;
   results: T[];
 }
-

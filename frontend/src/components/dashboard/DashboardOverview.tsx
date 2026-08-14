@@ -334,11 +334,31 @@ export function DashboardOverview() {
   // Handlers for campaign actions
   const handleCreateCampaign = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newCampaignForm.title || !newCampaignForm.target_amount) {
-      showToast("Veuillez remplir tous les champs obligatoires.", "error");
+    if (
+      !newCampaignForm.title.trim() ||
+      !newCampaignForm.description.trim() ||
+      !newCampaignForm.target_amount ||
+      !newCampaignForm.deadline
+    ) {
+      showToast(
+        "Veuillez remplir le titre, la description, le montant cible et la date limite de l’appel.",
+        "error",
+      );
       return;
     }
-    const res = await createCampaign(newCampaignForm, token);
+
+    const payload = {
+      ...newCampaignForm,
+      title: newCampaignForm.title.trim(),
+      deadline: newCampaignForm.deadline,
+      summary: newCampaignForm.summary || "",
+      description: newCampaignForm.description.trim(),
+      cover_image_path: newCampaignForm.cover_image_path || "",
+      video_path: newCampaignForm.video_path || "",
+      internal_notes: newCampaignForm.internal_notes || "",
+    };
+
+    const res = await createCampaign(payload, token);
     if (res.success) {
       showToast("Campagne créée avec succès !");
       setShowNewCampaignModal(false);
@@ -1203,6 +1223,7 @@ export function DashboardOverview() {
                 <input
                   type="text"
                   required
+                  maxLength={255}
                   value={newCampaignForm.title}
                   onChange={(e) => setNewCampaignForm({ ...newCampaignForm, title: e.target.value })}
                   placeholder="Ex : Intervention chirurgicale pour..."
@@ -1216,6 +1237,8 @@ export function DashboardOverview() {
                   <input
                     type="number"
                     required
+                    min="1"
+                    step="0.01"
                     value={newCampaignForm.target_amount}
                     onChange={(e) => setNewCampaignForm({ ...newCampaignForm, target_amount: e.target.value })}
                     placeholder="3500000"
@@ -1234,14 +1257,32 @@ export function DashboardOverview() {
                     <option value="TG">Togo</option>
                     <option value="CI">Côte d'Ivoire</option>
                     <option value="SN">Sénégal</option>
+                    <option value="BF">Burkina Faso</option>
+                    <option value="ML">Mali</option>
+                    <option value="BJ">Bénin</option>
+                    <option value="CD">RD Congo</option>
+                    <option value="NG">Nigeria</option>
+                    <option value="OTHER">Autre</option>
                   </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="font-semibold text-ink-muted uppercase">Date limite de collecte *</label>
+                <input
+                  type="date"
+                  required
+                  value={newCampaignForm.deadline}
+                  onChange={(e) => setNewCampaignForm({ ...newCampaignForm, deadline: e.target.value })}
+                  className="field mt-1"
+                />
               </div>
 
               <div>
                 <label className="font-semibold text-ink-muted uppercase">Résumé succinct</label>
                 <input
                   type="text"
+                  maxLength={300}
                   value={newCampaignForm.summary}
                   onChange={(e) => setNewCampaignForm({ ...newCampaignForm, summary: e.target.value })}
                   placeholder="Aperçu rapide affiché sur les cartes..."
@@ -1250,9 +1291,10 @@ export function DashboardOverview() {
               </div>
 
               <div>
-                <label className="font-semibold text-ink-muted uppercase">Description détaillée</label>
+                <label className="font-semibold text-ink-muted uppercase">Description détaillée *</label>
                 <textarea
                   rows={3}
+                  required
                   value={newCampaignForm.description}
                   onChange={(e) => setNewCampaignForm({ ...newCampaignForm, description: e.target.value })}
                   placeholder="Présentez le cas médical ou les objectifs du projet..."
@@ -1265,6 +1307,7 @@ export function DashboardOverview() {
                   <label className="font-semibold text-ink-muted uppercase">Formulaire de décharge signé</label>
                   <input
                     type="text"
+                    maxLength={512}
                     value={newCampaignForm.consent_form_path}
                     onChange={(e) => setNewCampaignForm({ ...newCampaignForm, consent_form_path: e.target.value })}
                     className="field mt-1"
@@ -1275,6 +1318,7 @@ export function DashboardOverview() {
                   <label className="font-semibold text-ink-muted uppercase">Devis / Chiffrage budgétaire</label>
                   <input
                     type="text"
+                    maxLength={512}
                     value={newCampaignForm.budget_justification_path}
                     onChange={(e) => setNewCampaignForm({ ...newCampaignForm, budget_justification_path: e.target.value })}
                     className="field mt-1"

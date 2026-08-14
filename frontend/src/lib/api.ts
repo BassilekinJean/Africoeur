@@ -63,6 +63,20 @@ function formatApiError(error: unknown): string {
   if (typeof error === "object") {
     const fieldLabels: Record<string, string> = {
       campaign: "la campagne",
+      deadline: "la date limite",
+      type: "le type d’appel",
+      category: "la catégorie",
+      title: "le titre",
+      summary: "le résumé",
+      description: "la description",
+      country: "le pays",
+      target_amount: "le montant cible",
+      currency: "la devise",
+      cover_image_path: "l’image de couverture",
+      video_path: "la vidéo",
+      budget_justification_path: "le justificatif budgétaire",
+      consent_form_path: "le formulaire de décharge",
+      internal_notes: "les notes internes",
       amount: "le montant demandé",
       beneficiary_name: "le bénéficiaire",
       purpose: "l’objet de la dépense",
@@ -84,7 +98,10 @@ function formatApiError(error: unknown): string {
 
       if (message) {
         const normalized = message.replace(/\[|\]|"/g, "").trim();
-        messages.push(normalized.startsWith(label) ? normalized : `${label}: ${normalized}`);
+        const alreadyNamesField = normalized
+          .toLocaleLowerCase("fr")
+          .includes(label.toLocaleLowerCase("fr"));
+        messages.push(alreadyNamesField ? normalized : `${label} : ${normalized}`);
       }
     }
 
@@ -170,8 +187,8 @@ export async function createCampaign(
         const data = await res.json();
         return { success: true, data };
       } else {
-        const err = await res.json();
-        return { success: false, error: JSON.stringify(err) };
+        const err = await res.json().catch(() => null);
+        return { success: false, error: formatApiError(err) };
       }
     } catch (e: any) {
       // Fallback below
@@ -476,4 +493,3 @@ export async function certifyOrganization(
 }
 
 export { API_BASE };
-
